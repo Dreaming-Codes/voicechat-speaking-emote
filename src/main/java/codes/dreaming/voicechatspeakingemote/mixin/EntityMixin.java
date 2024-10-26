@@ -4,6 +4,7 @@ import codes.dreaming.voicechatspeakingemote.IPlayerEntitySpeakingEmoteState;
 import codes.dreaming.voicechatspeakingemote.VoiceChatEmote;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
@@ -17,6 +18,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class EntityMixin {
     @Inject(method = "render(Lnet/minecraft/client/network/AbstractClientPlayerEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("HEAD"))
     private void shouldRender(AbstractClientPlayerEntity abstractClientPlayerEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
+        if (MinecraftClient.getInstance().player == abstractClientPlayerEntity) {
+            return;
+        }
+
         ClientVoicechat client = ClientManager.getClient();
 
         if (client == null) {
