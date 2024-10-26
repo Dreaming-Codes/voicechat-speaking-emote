@@ -36,12 +36,7 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modImplementation "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
-    implementation "io.github.kosmx.emotes:emotesAPI:${emotes_api_version}"
-
-    modRuntimeOnly "maven.modrinth:simple-voice-chat:fabric-${voicechat_mod_version}"
-    modImplementation "maven.modrinth:emotecraft:${emotecraft_version_id}"
-    modRuntimeOnly "maven.modrinth:playeranimator:${playeranimator_version_id}"
+    modImplementation "maven.modrinth:simple-voice-chat:fabric-${voicechat_mod_version}"
 
     annotationProcessor(modImplementation("io.wispforest:owo-lib:${project.property("owo_version")}"))
     include("io.wispforest:owo-sentinel:${project.property("owo_version")}")

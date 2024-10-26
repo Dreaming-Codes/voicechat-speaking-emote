@@ -10,8 +10,8 @@
   "icon": "assets/voicechat_speaking_emote/icon.png",
   "environment": "*",
   "entrypoints": {
-    "voicechat": [
-      "codes.dreaming.voicechatspeakingemote.plugin.VoicechatEmotePlugin"
+    "client": [
+      "codes.dreaming.voicechatspeakingemote.VoiceChatEmote"
     ]
   },
   "mixins": [
@@ -20,7 +20,6 @@
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
-    "minecraft": "${minecraft_version}",
-    "emotecraft": "*"
+    "minecraft": "${minecraft_version}"
   }
 }
