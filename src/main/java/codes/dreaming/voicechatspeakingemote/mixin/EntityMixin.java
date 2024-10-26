@@ -5,36 +5,37 @@ import codes.dreaming.voicechatspeakingemote.VoiceChatEmote;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.PlayerEntityRenderer;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.render.entity.LivingEntityRenderer;
+import net.minecraft.client.render.entity.model.EntityModel;
+import net.minecraft.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(PlayerEntityRenderer.class)
-public class EntityMixin {
-    @Inject(method = "render(Lnet/minecraft/client/network/AbstractClientPlayerEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("HEAD"))
-    private void shouldRender(AbstractClientPlayerEntity abstractClientPlayerEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
+@Mixin(LivingEntityRenderer.class)
+public class EntityMixin<T extends LivingEntity, M extends EntityModel<T>> {
+
+    @Redirect(method = "render(Lnet/minecraft/entity/LivingEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",
+              at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;getPitch()F"))
+    private float modifyPitch(LivingEntity livingEntity) {
+        if (!(livingEntity instanceof AbstractClientPlayerEntity abstractClientPlayerEntity)) {
+            return livingEntity.getPitch();
+        }
+
         ClientVoicechat client = ClientManager.getClient();
 
-        if (client == null) {
-            return;
+        if (client == null || !(client.getTalkCache().isTalking(abstractClientPlayerEntity) || client.getTalkCache().isWhispering(abstractClientPlayerEntity))) {
+            return livingEntity.getPitch();
         }
 
-        if (client.getTalkCache().isTalking(abstractClientPlayerEntity) || client.getTalkCache().isWhispering(abstractClientPlayerEntity)) {
-            var playerState = ((IPlayerEntitySpeakingEmoteState) abstractClientPlayerEntity);
-
-            float currentPitch = abstractClientPlayerEntity.getPitch();
-            if (currentPitch >= VoiceChatEmote.CONFIG.pitchUpperLimit()) {
-                playerState.setNoddingDelta(-VoiceChatEmote.CONFIG.pitchSpeed());
-            } else if (currentPitch <= VoiceChatEmote.CONFIG.pitchLowerLimit()) {
-                playerState.setNoddingDelta(VoiceChatEmote.CONFIG.pitchSpeed());
-            }
-            abstractClientPlayerEntity.setPitch(currentPitch + playerState.getNoddingDelta());
+        var playerState = ((IPlayerEntitySpeakingEmoteState) abstractClientPlayerEntity);
+        float currentPitch = abstractClientPlayerEntity.getPitch();
+        if (currentPitch >= VoiceChatEmote.CONFIG.pitchUpperLimit()) {
+            playerState.setNoddingDelta(-VoiceChatEmote.CONFIG.pitchSpeed());
+        } else if (currentPitch <= VoiceChatEmote.CONFIG.pitchLowerLimit()) {
+            playerState.setNoddingDelta(VoiceChatEmote.CONFIG.pitchSpeed());
         }
 
+        return currentPitch + playerState.getNoddingDelta();
     }
-
 }
