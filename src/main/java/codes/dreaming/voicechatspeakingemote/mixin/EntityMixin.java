@@ -17,7 +17,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PlayerEntityRenderer.class)
 public class EntityMixin {
     @Inject(method = "render(Lnet/minecraft/client/network/AbstractClientPlayerEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("HEAD"))
-    private void shouldRender(AbstractClientPlayerEntity abstractClientPlayerEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
+    private void shouldRender(AbstractClientPlayerEntity abstractClientPlayerEntity, float f, float g,
+            MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
+
         if (MinecraftClient.getInstance().player == abstractClientPlayerEntity) {
             return;
         }
@@ -31,15 +33,18 @@ public class EntityMixin {
         if (client.getTalkCache().isTalking(abstractClientPlayerEntity) || client.getTalkCache().isWhispering(abstractClientPlayerEntity)) {
             var playerState = ((IPlayerEntitySpeakingEmoteState) abstractClientPlayerEntity);
 
+            // Get effective movement delta
+            float moveSpeed = VoiceChatEmote.CONFIG.pitchSpeed();
+            float frameTime = MinecraftClient.getInstance().getLastFrameDuration();
+            float targetMovement =  frameTime * moveSpeed;
+
+            // Set movement range
             float currentPitch = abstractClientPlayerEntity.getPitch();
-            if (currentPitch >= VoiceChatEmote.CONFIG.pitchUpperLimit()) {
-                playerState.setNoddingDelta(-VoiceChatEmote.CONFIG.pitchSpeed());
-            } else if (currentPitch <= VoiceChatEmote.CONFIG.pitchLowerLimit()) {
-                playerState.setNoddingDelta(VoiceChatEmote.CONFIG.pitchSpeed());
-            }
+            if (currentPitch >= VoiceChatEmote.CONFIG.pitchUpperLimit()) { playerState.setNoddingDelta(-targetMovement); } 
+            else if (currentPitch <= VoiceChatEmote.CONFIG.pitchLowerLimit()) { playerState.setNoddingDelta(targetMovement); }
+
+            // Apply movement delta
             abstractClientPlayerEntity.setPitch(currentPitch + playerState.getNoddingDelta());
         }
-
     }
-
 }
